@@ -16,7 +16,10 @@ import androidx.core.app.ActivityCompat
 import androidx.navigation.fragment.findNavController
 import com.dmribeiro87.poc_heatmap.R
 import com.dmribeiro87.poc_heatmap.databinding.FragmentFirstBinding
+import com.dmribeiro87.poc_heatmap.model.Boundary
+import com.dmribeiro87.poc_heatmap.model.HexagonData
 import com.dmribeiro87.poc_heatmap.ui.viewmodel.HeatMapViewModel
+import com.dmribeiro87.poc_heatmap.utils.PolygonColors
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -26,15 +29,19 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.Polygon
+import com.google.android.gms.maps.model.PolygonOptions
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 
 class FirstFragment : Fragment(), OnCameraIdleListener {
 
     private var _binding: FragmentFirstBinding? = null
-    private var googleMap: GoogleMap? = null
+    private lateinit var googleMap: GoogleMap
     private lateinit var currentLocation: Location
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+    private val polygons = mutableListOf<Polygon>()
+    private val polygonColors = PolygonColors()
     private val permissionCode = 1001
 
     private val binding get() = _binding!!
@@ -45,16 +52,13 @@ class FirstFragment : Fragment(), OnCameraIdleListener {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentFirstBinding.inflate(inflater, container, false)
-
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity())
-
         viewModel.getHexagons()
-        observeData()
         getCurrentLocationUser()
     }
 
@@ -98,6 +102,7 @@ class FirstFragment : Fragment(), OnCameraIdleListener {
         }
     }
 
+
     private fun getCurrentLocationUser() {
         if (ActivityCompat.checkSelfPermission(
             requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
@@ -112,25 +117,65 @@ class FirstFragment : Fragment(), OnCameraIdleListener {
                 Toast.makeText(requireContext(), currentLocation.latitude.toString() + ", "  + currentLocation.longitude.toString(), Toast.LENGTH_LONG).show()
                 val mapFragment = childFragmentManager.findFragmentById(R.id.heat_map) as SupportMapFragment
                 mapFragment.getMapAsync { map ->
-                    googleMap = map
-                    val latLng = LatLng(currentLocation.latitude, currentLocation.longitude)
-                    val markerOptions = MarkerOptions().position(latLng).title("Current Location")
-                    googleMap?.animateCamera(CameraUpdateFactory.newLatLng(latLng))
-                    googleMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 18f))
-                    googleMap?.addMarker(markerOptions)
+
+                        setMap(map)
+                        val latLng = LatLng(currentLocation.latitude, currentLocation.longitude)
+                        val markerOptions = MarkerOptions().position(latLng).title("Current Location")
+                        googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng))
+                        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 18f))
+                        googleMap.addMarker(markerOptions)
+
                 }
             }
-        }
-    }
-
-    private fun observeData() {
-        viewModel.hexagonData.observe(viewLifecycleOwner){
-            Log.d("***Data", it.toString())
         }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private fun setMap(googleMap: GoogleMap) {
+        this.googleMap = googleMap
+        this.googleMap.uiSettings.apply { isZoomControlsEnabled = true }
+        this.googleMap.setOnCameraIdleListener(this)
+
+        viewModel.hexagonData.value?.let {
+            updateHexagons(it)
+        }
+    }
+
+    private fun updateHexagons(list: List<HexagonData>) {
+        list.forEach { data ->
+            val polygonOptions = PolygonOptions()
+            polygonOptions.fillColor(polygonColors.scoreToFillColor(data.score))
+            polygonOptions.strokeWidth(1F)
+            polygonOptions.strokeColor(polygonColors.scoreToStrokeColor(data.score))
+            val boundary = convertBoundaryToCoordinates(data.boundary)
+            boundary.forEach { hexagons ->
+                polygonOptions.addAll(hexagons)
+                Log.d("***polygonOptions", polygonOptions.points.size.toString())
+            }
+            Log.d("***boundary", boundary.toString())
+
+            if (boundary.isNotEmpty()) {
+                if(::googleMap.isInitialized) {
+                    polygons.add(googleMap.addPolygon(polygonOptions))
+                }
+            }
+        }
+    }
+
+    private fun invertedLatLng(list: List<List<List<Double>>>?): List<List<LatLng>> {
+        return list!!.map { outerList ->
+            outerList.map { innerList ->
+                LatLng(innerList[1], innerList[0])
+            }
+        }
+    }
+
+    private fun convertBoundaryToCoordinates(boundaryDto: Boundary?) : List<List<LatLng>> {
+        val data = boundaryDto?.coordinates
+        return invertedLatLng(data)
     }
 }
