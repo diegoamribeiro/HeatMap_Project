@@ -2,6 +2,10 @@ package com.dmribeiro87.poc_heatmap.ui
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
 import android.location.Location
 import android.os.Build
 import android.os.Bundle
@@ -26,6 +30,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.GoogleMap.OnCameraIdleListener
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MarkerOptions
@@ -165,6 +170,73 @@ class FirstFragment : Fragment(), OnCameraIdleListener {
             }
         }
     }
+
+//    private fun updateHexagons(list: List<HexagonData>) {
+//        list.forEach { data ->
+//            val polygonOptions = PolygonOptions()
+//            polygonOptions.fillColor(polygonColors.scoreToFillColor(data.score))
+//            polygonOptions.strokeWidth(1F)
+//            polygonOptions.strokeColor(polygonColors.scoreToStrokeColor(data.score))
+//            val boundary = convertBoundaryToCoordinates(data.boundary)
+//            boundary.forEach { hexagons ->
+//                polygonOptions.addAll(hexagons)
+//                Log.d("***polygonOptions", polygonOptions.points.size.toString())
+//            }
+//            Log.d("***boundary", boundary.toString())
+//
+//            if (boundary.isNotEmpty()) {
+//                if(::googleMap.isInitialized) {
+//                    polygons.add(googleMap.addPolygon(polygonOptions))
+//
+//                    val center = getCenterPoint(polygonOptions.points)
+//                    val textOptions = MarkerOptions()
+//                        .position(center)
+//                        .title(data.hexagonId)
+//                        .icon(BitmapDescriptorFactory.fromBitmap(createTextBitmap(data.hexagonId)))
+//
+//                    googleMap.addMarker(textOptions)
+//
+//                    polygonOptions.points.forEachIndexed { index, point ->
+//                        createNumberedMarker(googleMap, point, index + 1)
+//                    }
+//                }
+//            }
+//        }
+//    }
+
+
+//    private fun createNumberedMarker(map: GoogleMap, position: LatLng, number: Int) {
+//        val textOptions = MarkerOptions()
+//            .position(position)
+//            .title(number.toString())
+//            .icon(BitmapDescriptorFactory.fromBitmap(createTextBitmap(number.toString())))
+//
+//        map.addMarker(textOptions)
+//    }
+
+//    private fun createTextBitmap(text: String): Bitmap {
+//        val paint = Paint()
+//        paint.textSize = 10f
+//        paint.color = Color.BLACK
+//        paint.textAlign = Paint.Align.LEFT
+//        val textWidth = paint.measureText(text).toInt() + 10
+//        val textHeight = 60
+//        val bitmap = Bitmap.createBitmap(textWidth, textHeight, Bitmap.Config.ARGB_8888)
+//        val canvas = Canvas(bitmap)
+//        canvas.drawText(text, 5f, 40f, paint)
+//        return bitmap
+//    }
+//
+//
+//    fun getCenterPoint(coordinates: List<LatLng>): LatLng {
+//        var latitude = 0.0
+//        var longitude = 0.0
+//        coordinates.forEach {
+//            latitude += it.latitude
+//            longitude += it.longitude
+//        }
+//        return LatLng(latitude / coordinates.size, longitude / coordinates.size)
+//    }
 
     private fun invertedLatLng(list: List<List<List<Double>>>?): List<List<LatLng>> {
         return list!!.map { outerList ->
