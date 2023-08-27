@@ -23,6 +23,5 @@ class MyApplication: Application() {
     private val appModule = module {
         factory { Repository(get())}
         viewModel { HeatMapViewModel(get()) }
-
     }
 }

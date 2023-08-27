@@ -4,8 +4,6 @@ package com.dmribeiro87.poc_heatmap.model
 import com.google.gson.annotations.SerializedName
 
 data class HexagonResponse(
-    @SerializedName("colors")
-    val colors: List<HexagonColor>?,
     @SerializedName("data")
     val data: List<HexagonData>?,
     @SerializedName("pagination")

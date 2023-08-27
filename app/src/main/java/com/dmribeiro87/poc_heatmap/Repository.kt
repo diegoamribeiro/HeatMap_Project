@@ -14,7 +14,7 @@ class Repository(private val context: Context) {
     }
 
     private fun readJSONFromAsset(): String {
-        val inputStream = context.assets.open("location_sp.json")
+        val inputStream = context.assets.open("hexagons.json")
         val size = inputStream.available()
         val buffer = ByteArray(size)
         inputStream.read(buffer)
