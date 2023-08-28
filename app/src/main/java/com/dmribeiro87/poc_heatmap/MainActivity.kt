@@ -23,8 +23,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        supportActionBar?.setBackgroundDrawable(resources.getDrawable(R.color.white))
-
         val homeContainerView = supportFragmentManager
             .findFragmentById(R.id.fragmentContainer) as NavHostFragment
         navController = homeContainerView.navController
