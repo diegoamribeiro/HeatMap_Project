@@ -22,6 +22,8 @@ class HeatMapViewModel(
 
             _hexagonData.value = resource.data!!
         }
+
+
     }
 
 }
